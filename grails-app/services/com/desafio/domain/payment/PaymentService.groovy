@@ -24,7 +24,8 @@ class PaymentService {
         payment.dueDate = DateUtils.formatStringToDate(params.dueDate, "yyyy-MM-dd")
         payment.payer = Payer.get(Long.valueOf(params.payerId))
         payment.save(failOnError: true)
-
+        payment.customer = springSecurityService.getCurrentUser().customer 
+        
         paymentNotificationService.notifyCreatedPayment(payment)
 
         return payment

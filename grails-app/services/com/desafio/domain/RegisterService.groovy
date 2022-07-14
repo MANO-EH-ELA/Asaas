@@ -15,7 +15,7 @@ import grails.converters.JSON
 class RegisterService {
 
     public register(Map params) {
-        Customer customer = connectCustomer(params.username)
+        Customer customer = springSecurityService.getCurrentUser().customer  
         User user = connectUser(params.username, params.password, customer)
         connectRoleUser(user)
         return user
@@ -25,13 +25,13 @@ class RegisterService {
         User user = new User()
         user.username = username
         user.password = password
-        user.customer = customer
+        user.customer = springSecurityService.getCurrentUser().customer  
         user.save(flush: true, failOnError: true)
         return user
     }
 
     public Customer connectCustomer(String email) {
-        Customer customer = new Customer()
+        Customer customer = springSecurityService.getCurrentUser().customer  
         customer.email = email
         customer.save(flush: true, failOnError: true)
     }

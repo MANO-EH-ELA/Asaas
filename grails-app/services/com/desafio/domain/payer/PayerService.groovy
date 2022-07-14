@@ -7,10 +7,9 @@ import com.desafio.domain.customer.Customer
 @Transactional
 class PayerService {
 
-    public Payer save(Map params) {
-        Customer customer = springSecurityService.getCurrentUser().customer 
+    public Payer save(Customer customer, Map params) {
         Payer payer = new Payer(params)
-        payer.customer = customer
+        payer.customer = springSecurityService.getCurrentUser().customer 
         payer.save(failOnError: true)
         return payer
     }
