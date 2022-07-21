@@ -27,9 +27,8 @@ class PaymentController extends BaseController {
         }
         return [customer: customer, paymentList: paymentList, totalCount: paymentList.size()]
     }
-
     def create() {
-          Long customerId = params.long("customerId")
+       Long customerId = params.long("customerId")
         List<Payer> payerList = Payer.createCriteria().list() {
             eq("customer", Customer.get(customerId)) 
         }
@@ -38,16 +37,15 @@ class PaymentController extends BaseController {
 
     def save() {
         try {
-            Payment payment = paymentService.save(params) 
-            if (payment.hasErrors()) {
-                render([success: false, message: message(code: payment.errors.allErrors[0].defaultMessage ?: payment.errors.allErrors[0].codes[0])] as JSON)
-                return
-            }
+            Customer customer = springSecurityService.getCurrentUser().customer 
+            Long paymentId = params.long("paymentId")
+            paymentService.save(paymentId, params)          
             render([success: true] as JSON)
-        } catch (Exception exception) {
-            render([success: false, message: message(code: "unknow.error")] as JSON)
+            }catch(Exception exception) {
+                exception.printStackTrace()
+                render([success: false] as JSON)
+            }
         }
-    }
 
     def confirm() {
         try {
