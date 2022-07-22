@@ -42,7 +42,6 @@ class PaymentController extends BaseController {
             paymentService.save(paymentId, params)          
             render([success: true] as JSON)
             }catch(Exception exception) {
-                exception.printStackTrace()
                 render([success: false] as JSON)
             }
         }
