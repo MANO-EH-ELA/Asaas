@@ -7,27 +7,24 @@ import com.desafio.enums.PaymentMethod
 import com.desafio.enums.PaymentStatus
 import com.desafio.utils.DateUtils
 
-import grails.plugin.springsecurity.annotation.Secured
 import grails.gorm.transactions.Transactional 
 import grails.plugin.asyncmail.AsynchronousMailService
 import grails.gsp.PageRenderer
 
 @Transactional
 class PaymentService {
-    
-     def springSecurityService
+
     def paymentNotificationService
 
-    public Payment save(Customer customer, Map params) {
+    public Payment save(Map params) {
         Payment payment = new Payment()
-        payment.customer = springSecurityService.getCurrentUser().customer 
-        payment.value = new BigDecimal(params.value) 
-        payment.dueDate = DateUtils.formatStringToDate(params.dueDate, "yyyy-MM-dd")
+        payment.value = new BigDecimal(params.value)
         payment.status = PaymentStatus.PENDING
         payment.method = PaymentMethod.valueOf(params.method)
+        payment.dueDate = DateUtils.formatStringToDate(params.dueDate, "yyyy-MM-dd")
         payment.payer = Payer.get(Long.valueOf(params.payerId))
         payment.save(failOnError: true)
-        
+        payment.customer = springSecurityService.getCurrentUser().customer 
         
         paymentNotificationService.notifyCreatedPayment(payment)
 

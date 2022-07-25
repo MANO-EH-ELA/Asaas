@@ -31,7 +31,7 @@ class RegisterService {
     }
 
     public Customer connectCustomer(String email) {
-        Customer customer = springSecurityService.getCurrentUser().customer  
+        Customer customer = new Customer()
         customer.email = email
         customer.save(flush: true, failOnError: true)
     }
