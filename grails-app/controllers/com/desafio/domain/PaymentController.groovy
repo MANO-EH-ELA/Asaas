@@ -37,11 +37,11 @@ class PaymentController extends BaseController {
 
     def save() {
         try {
-            Customer customer = springSecurityService.getCurrentUser().customer 
-            Long paymentId = params.long("paymentId")
-            paymentService.save(paymentId, params)          
+            Customer customer = springSecurityService.getCurrentUser().customer
+            paymentService.save(customer, params)          
             render([success: true] as JSON)
-            }catch(Exception exception) {
+            } catch(Exception exception) {
+                printStackTrace() 
                 render([success: false] as JSON)
             }
         }
@@ -50,12 +50,11 @@ class PaymentController extends BaseController {
         try {
             Long paymentId = params.long("paymentId")
             Payment payment = paymentService.confirmPayment(paymentId)
-            
             if (payment) {
                 redirect (controller: "payment", action: "index", params: [customerId: payment.customerId])
                 return
             }
-        } catch (Exception exception) {
+        } catch(Exception exception) {
             redirect action: "index"
             flash.message = "Erro ao confirmar cobrança"
         }
