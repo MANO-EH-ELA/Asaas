@@ -35,17 +35,15 @@ class PaymentController extends BaseController {
         return [customerId: customerId, payerList: payerList]
     }
 
-    def save() {
+   def save() {
         try {
-            Customer customer = springSecurityService.getCurrentUser().customer 
-            Long paymentId = params.long("paymentId")
-            paymentService.save(paymentId, params)          
+            Customer customer = springSecurityService.getCurrentUser().customer
+            paymentService.save(customer, params)          
             render([success: true] as JSON)
-            }catch(Exception exception) {
-                exception.printStackTrace()
+            } catch(Exception exception) {
+                printStackTrace() 
                 render([success: false] as JSON)
             }
-        }
 
     def confirm() {
         try {
