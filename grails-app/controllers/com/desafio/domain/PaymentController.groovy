@@ -17,16 +17,18 @@ import grails.plugin.springsecurity.annotation.Secured
 
 class PaymentController extends BaseController {
     
+    def springSecurityService
     def paymentService
     
     def index() {
-        Long customerId = params.long("customerId")
-        List<Payment> paymentList = paymentService.getPaymentByCustomer(customerId, getLimitPage(), getCurrentPage())
-        return [customerId: customerId, paymentList: paymentList, totalCount: paymentList.size()]
+        Customer customer = springSecurityService.getCurrentUser().customer 
+        List<Payment> paymentList = Payment.createCriteria().list() {
+            eq("customer", customer)
+        }
+        return [customer: customer, paymentList: paymentList, totalCount: paymentList.size()]
     }
-
     def create() {
-        Long customerId = params.long("customerId")
+       Long customerId = params.long("customerId")
         List<Payer> payerList = Payer.createCriteria().list() {
             eq("customer", Customer.get(customerId)) 
         }
@@ -35,27 +37,24 @@ class PaymentController extends BaseController {
 
     def save() {
         try {
-            Payment payment = paymentService.save(params) 
-            if (payment.hasErrors()) {
-                render([success: false, message: message(code: payment.errors.allErrors[0].defaultMessage ?: payment.errors.allErrors[0].codes[0])] as JSON)
-                return
-            }
+            Customer customer = springSecurityService.getCurrentUser().customer
+            paymentService.save(customer, params)          
             render([success: true] as JSON)
-        } catch (Exception exception) {
-            render([success: false, message: message(code: "unknow.error")] as JSON)
+            } catch(Exception exception) {
+                printStackTrace() 
+                render([success: false] as JSON)
+            }
         }
-    }
 
     def confirm() {
         try {
             Long paymentId = params.long("paymentId")
             Payment payment = paymentService.confirmPayment(paymentId)
-            
             if (payment) {
                 redirect (controller: "payment", action: "index", params: [customerId: payment.customerId])
                 return
             }
-        } catch (Exception exception) {
+        } catch(Exception exception) {
             redirect action: "index"
             flash.message = "Erro ao confirmar cobrança"
         }

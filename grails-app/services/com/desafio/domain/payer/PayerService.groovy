@@ -4,13 +4,26 @@ import com.desafio.domain.payer.Payer
 import grails.gorm.transactions.Transactional
 import com.desafio.domain.customer.Customer
 
+import grails.plugin.springsecurity.annotation.Secured
+
 @Transactional
 class PayerService {
 
-    public Payer save(Map params) {
-        Customer customer = Customer.get(params.customerId)
+    def springSecurityService
+
+    public Payer save(Customer customer, Map params) {
         Payer payer = new Payer(params)
-        payer.customer = customer
+        payer.customer = customer 
+        payer.name = params.name
+        payer.email = params.email
+        payer.cpfCnpj = params.cpfCnpj 
+        payer.phone = params.phone 
+        payer.postalCode = params.postalCode
+        payer.address = params.address
+        payer.addressNumber = params.addressNumber
+        payer.province = params.province
+        payer.city = params.city
+        payer.state = params.state 
         payer.save(failOnError: true)
         return payer
     }

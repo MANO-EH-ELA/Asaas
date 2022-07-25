@@ -16,29 +16,17 @@ class PaymentService {
 
     def paymentNotificationService
 
-    public Payment save(Map params) {
-        Payment payment = new Payment()
-        payment.value = new BigDecimal(params.value)
+    public Payment save(Customer customer, Map params){
+        Payment payment = new Payment() 
+        payment.customer = customer 
+        payment.value = new BigDecimal(params.value) 
+        payment.dueDate = DateUtils.formatStringToDate(params.dueDate, "yyyy-MM-dd")
         payment.status = PaymentStatus.PENDING
         payment.method = PaymentMethod.valueOf(params.method)
-        payment.dueDate = DateUtils.formatStringToDate(params.dueDate, "yyyy-MM-dd")
-        payment.customer = Customer.get(Long.valueOf(params.customerId))
         payment.payer = Payer.get(Long.valueOf(params.payerId))
         payment.save(failOnError: true)
-
+        
         paymentNotificationService.notifyCreatedPayment(payment)
-
-        return payment
-    }
-
-    public Payment confirmPayment(Long paymentId) {
-        Payment payment = Payment.get(paymentId)
-        if (payment.status != PaymentStatus.PENDING) throw new Exception("Somente podem ser confirmadas cobranças que estejam pendentes de recebimento")
-        payment.status = PaymentStatus.PAID
-        payment.paymentDate = new Date()
-        payment.save(flush: true, failOnError: true)
-
-        paymentNotificationService.notifyConfirmedPayment(payment)
         
         return payment
     }
@@ -66,17 +54,4 @@ class PaymentService {
 
         paymentNotificationService.notifyOverduePayment() 
     }
-    public List<Payment> getPaymentByCustomer(Long customerId, Integer max = null, Integer offset = null) {
-
-        if (max == null || offset == null) {
-            List<Payment> paymentList = Payment.createCriteria().list() {
-                eq("customer", Customer.get("customerId"))
-            }
-            return paymentList
-        }
-        List<Payment> paymentList = Payment.createCriteria().list() {
-            eq("customer", Customer.get("customerId"))
-        }
-        return paymentList
-        }
-    }
+}

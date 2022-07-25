@@ -15,7 +15,7 @@ import grails.converters.JSON
 class RegisterService {
 
     public register(Map params) {
-        Customer customer = connectCustomer(params.username)
+        Customer customer =  connectCustomer(params.username)
         User user = connectUser(params.username, params.password, customer)
         connectRoleUser(user)
         return user
@@ -36,7 +36,7 @@ class RegisterService {
         customer.save(flush: true, failOnError: true)
     }
 
-        public connectRoleUser(User user) {
+    public connectRoleUser(User user) {
         def role = Role.get(2)
         UserRole.create(user, role)
         UserRole.withSession {
