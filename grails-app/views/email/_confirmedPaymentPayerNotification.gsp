@@ -26,7 +26,7 @@
             <g:formatDate format="dd/MM/yyyy" date="${payment.dueDate}"/>
         </div>
         <div>
-            <lavel><b>Data do pagamento:</b></lavel>
+            <label><b>Data do pagamento:</b></label>
             <g:formatDate format="dd/MM/yyyy" type="dateTime" style="SHORT" date="${payment.paymentDate}"/>
         </div>
         <hr>
