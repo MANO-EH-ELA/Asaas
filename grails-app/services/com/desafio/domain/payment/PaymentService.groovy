@@ -7,14 +7,17 @@ import com.desafio.enums.PaymentMethod
 import com.desafio.enums.PaymentStatus
 import com.desafio.utils.DateUtils
 
+import grails.plugin.springsecurity.annotation.Secured
 import grails.gorm.transactions.Transactional 
 import grails.plugin.asyncmail.AsynchronousMailService
 import grails.gsp.PageRenderer
 
 @Transactional
 class PaymentService {
-
+    
+    def springSecurityService
     def paymentNotificationService
+
 
     public Payment save(Customer customer, Map params){
         Payment payment = new Payment() 
@@ -27,7 +30,17 @@ class PaymentService {
         payment.save(failOnError: true)
         
         paymentNotificationService.notifyCreatedPayment(payment)
-        
+
+        return payment
+    }
+
+    public Payment confirmPayment(Long paymentId) {
+        Payment payment = Payment.get(paymentId)
+        payment.status = PaymentStatus.PAID
+        payment.paymentDate = new Date()
+        payment.save(flush: true, failOnError:true)
+        paymentNotificationService.notifyConfirmedPayment(payment)
+ 
         return payment
     }
 
@@ -42,8 +55,9 @@ class PaymentService {
     public Payment updateToOverdue() {
         Date dueDate = DateUtils.getYesterday()
         List<Payment> paymentList = listStatus(PaymentStatus.PENDING, dueDate)
-        for (Payment payment : paymentList) {
-            setAsOverdue()
+        for(Payment payment : paymentList) {
+              payment.status = PaymentStatus.OVERDUE
+              payment.save(failOnError:true)
         }
     }
     
@@ -53,5 +67,14 @@ class PaymentService {
         payment.save(failOnError:true)
 
         paymentNotificationService.notifyOverduePayment() 
+
+        return payment
+    }
+
+     private void notifyConfirmedPayment(Long paymentId) {
+        Payment payment = Payment.get(paymentId)
+        String subject = "Asaas - Pagamento confirmado"
+        emailService.sendEmail(payment.customer.email, subject, groovyPageRenderer.render(template: "/email/confirmedPaymentCustomerNotification", model: [payment: payment]))
+        emailService.sendEmail(payment.payer.email, subject, groovyPageRenderer.render(template: "/email/_confirmedPaymentPayerNotification", model: [payment: payment]))
     }
 }
