@@ -13,7 +13,7 @@ class PayerService {
 
     public Payer save(Customer customer, Map params) {
         Payer payer = new Payer(params)
-        payer.customer = springSecurityService.getCurrentUser().customer 
+        payer.customer = customer 
         payer.name = params.name
         payer.email = params.email
         payer.cpfCnpj = params.cpfCnpj 

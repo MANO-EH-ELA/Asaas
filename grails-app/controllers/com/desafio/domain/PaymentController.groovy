@@ -48,11 +48,11 @@ class PaymentController extends BaseController {
         try {
             Long paymentId = params.long("paymentId")
             Payment payment = paymentService.confirmPayment(paymentId)
-            if (payment){
+            if (payment) {
                 redirect (controller: "payment", action: "index", params: [customerId: payment.customerId])
                 return
             }
-        } catch (Exception exception) {
+        } catch(Exception exception) {
             redirect action: "index"
             flash.message = "Erro ao confirmar cobrança"
         }
