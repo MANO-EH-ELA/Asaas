@@ -41,16 +41,14 @@ class PaymentController extends BaseController {
             paymentService.save(customer, params)          
             render([success: true] as JSON)
             } catch(Exception exception) {
-                printStackTrace() 
                 render([success: false] as JSON)
             }
-
+        }
     def confirm() {
         try {
             Long paymentId = params.long("paymentId")
             Payment payment = paymentService.confirmPayment(paymentId)
-            
-            if (payment) {
+            if (payment){
                 redirect (controller: "payment", action: "index", params: [customerId: payment.customerId])
                 return
             }

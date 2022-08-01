@@ -6,7 +6,7 @@ import com.desafio.domain.customer.Customer
 import com.desafio.enums.PaymentMethod
 import com.desafio.enums.PaymentStatus
 import com.desafio.utils.DateUtils
-
+import com.desafio.domain.EmailService
 import grails.plugin.springsecurity.annotation.Secured
 import grails.gorm.transactions.Transactional 
 import grails.plugin.asyncmail.AsynchronousMailService
@@ -15,12 +15,13 @@ import grails.gsp.PageRenderer
 @Transactional
 class PaymentService {
     
-     def springSecurityService
+    def springSecurityService
     def paymentNotificationService
+    def emailService
 
     public Payment save(Customer customer, Map params) {
         Payment payment = new Payment()
-        payment.customer = springSecurityService.getCurrentUser().customer 
+        payment.customer = customer 
         payment.value = new BigDecimal(params.value) 
         payment.dueDate = DateUtils.formatStringToDate(params.dueDate, "yyyy-MM-dd")
         payment.status = PaymentStatus.PENDING
@@ -36,13 +37,11 @@ class PaymentService {
 
     public Payment confirmPayment(Long paymentId) {
         Payment payment = Payment.get(paymentId)
-        if (payment.status != PaymentStatus.PENDING) throw new Exception("Somente podem ser confirmadas cobranças que estejam pendentes de recebimento")
         payment.status = PaymentStatus.PAID
         payment.paymentDate = new Date()
-        payment.save(flush: true, failOnError: true)
-
+        payment.save(flush: true, failOnError:true)
         paymentNotificationService.notifyConfirmedPayment(payment)
-        
+ 
         return payment
     }
 
@@ -57,8 +56,9 @@ class PaymentService {
     public Payment updateToOverdue() {
         Date dueDate = DateUtils.getYesterday()
         List<Payment> paymentList = listStatus(PaymentStatus.PENDING, dueDate)
-        for (Payment payment : paymentList) {
-            setAsOverdue()
+        for(Payment payment : paymentList) {
+              payment.status = PaymentStatus.OVERDUE
+              payment.save(failOnError:true)
         }
     }
     
@@ -68,5 +68,14 @@ class PaymentService {
         payment.save(failOnError:true)
 
         paymentNotificationService.notifyOverduePayment() 
+
+        return payment
+    }
+
+     private void notifyConfirmedPayment(Long paymentId) {
+        Payment payment = Payment.get(paymentId)
+        String subject = "Asaas - Pagamento confirmado"
+        emailService.sendEmail(payment.customer.email, subject, groovyPageRenderer.render(template: "/email/confirmedPaymentCustomerNotification", model: [payment: payment]))
+        emailService.sendEmail(payment.payer.email, subject, groovyPageRenderer.render(template: "/email/_confirmedPaymentPayerNotification", model: [payment: payment]))
     }
 }
